@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Large model files (never commit)
+*.keras
+*.pkl
+*.h5
+
+# Raw data (not for deployment)
+../../data/
+../../model/
+
+# Local env
+.env
+venv/
