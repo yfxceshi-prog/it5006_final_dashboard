@@ -26,13 +26,17 @@ def build_chicago_layer(df_week: pd.DataFrame, crime: str, model: str) -> pdk.La
         prob_col = f"mlp_prob_{crime}"
         df["_color"] = df[prob_col].apply(_prob_to_color)
         df["_elev"] = (df[prob_col] * 800).clip(0, 800)
+    elif model == "Random Forest":
+        prob_col = f"rf_prob_{crime}"
+        df["_color"] = df[prob_col].apply(_prob_to_color)
+        df["_elev"] = (df[prob_col] * 800).clip(0, 800)
     elif model == "XGBoost":
         pred_col = f"xgb_pred_{crime}"
         df["_color"] = df[pred_col].apply(
             lambda v: [220, 53, 69, 200] if v == 1 else [68, 68, 170, 80]
         )
         df["_elev"] = df[pred_col] * 400
-    else:  # 真实标签
+    else:  # True Labels
         true_col = f"true_{crime}"
         df["_color"] = df[true_col].apply(
             lambda v: [255, 140, 0, 200] if v == 1 else [40, 60, 100, 60]

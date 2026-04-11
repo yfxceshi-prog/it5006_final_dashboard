@@ -29,7 +29,7 @@ st.sidebar.caption(iso_week_to_label(week))
 
 model = st.sidebar.radio(
     "Model",
-    ["MLP", "XGBoost", "True Labels"],
+    ["MLP", "XGBoost", "Random Forest", "True Labels"],
     index=0,
 )
 
@@ -48,13 +48,15 @@ if model == "MLP":
     pred_col = f"mlp_pred_{crime}"
 elif model == "XGBoost":
     pred_col = f"xgb_pred_{crime}"
+elif model == "Random Forest":
+    pred_col = f"rf_pred_{crime}"
 else:
     pred_col = f"true_{crime}"
 
 hot_count = int(df_week[pred_col].sum()) if pred_col in df_week.columns else 0
 true_count = int(df_week[f"true_{crime}"].sum())
 
-if model != "True Labels" and pred_col in df_week.columns:
+if model not in ("True Labels",) and pred_col in df_week.columns:
     correct = int((df_week[f"true_{crime}"] == df_week[pred_col]).sum())
     accuracy = correct / len(df_week) * 100 if len(df_week) > 0 else 0
     acc_str = f"{accuracy:.1f}%"
@@ -86,11 +88,11 @@ st.pydeck_chart(deck, use_container_width=True, height=550)
 col_left, col_right = st.columns([6, 4])
 
 with col_left:
-    if model in ("MLP", "XGBoost"):
+    if model in ("MLP", "XGBoost", "Random Forest"):
         fig = hotspot_trend_chart(df, crime, model, week)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Switch to MLP or XGBoost to see the weekly prediction trend.")
+        st.info("Switch to MLP, XGBoost, or Random Forest to see the weekly prediction trend.")
 
 with col_right:
     st.subheader("Top-10 Highest-Risk Grids")
@@ -102,6 +104,10 @@ with col_right:
         sort_col = f"xgb_pred_{crime}"
         display_cols = ["grid_id", sort_col, f"true_{crime}", f"count_{crime}"]
         display_names = ["Grid ID", "XGB Pred", "Actual", "Count"]
+    elif model == "Random Forest":
+        sort_col = f"rf_prob_{crime}"
+        display_cols = ["grid_id", sort_col, f"true_{crime}", f"count_{crime}"]
+        display_names = ["Grid ID", "RF Prob", "Actual", "Count"]
     else:
         sort_col = f"true_{crime}"
         display_cols = ["grid_id", sort_col, f"count_{crime}"]
@@ -119,5 +125,8 @@ with col_right:
             "MLP Prob": st.column_config.ProgressColumn(
                 "MLP Prob", min_value=0, max_value=1, format="%.3f"
             ) if model == "MLP" else None,
+            "RF Prob": st.column_config.ProgressColumn(
+                "RF Prob", min_value=0, max_value=1, format="%.3f"
+            ) if model == "Random Forest" else None,
         },
     )

@@ -17,10 +17,13 @@ MODEL_COLORS = {
 
 def hotspot_trend_chart(df: pd.DataFrame, crime: str, model: str, selected_week: int) -> go.Figure:
     """Line chart: predicted vs actual hotspot grid count per week."""
+    pred_col = {"MLP": f"mlp_pred_{crime}",
+                "XGBoost": f"xgb_pred_{crime}",
+                "Random Forest": f"rf_pred_{crime}"}[model]
     weekly = (
         df.groupby("iso_week")
         .agg(
-            pred_hot=((f"mlp_pred_{crime}" if model == "MLP" else f"xgb_pred_{crime}"), "sum"),
+            pred_hot=(pred_col, "sum"),
             true_hot=(f"true_{crime}", "sum"),
         )
         .reset_index()
