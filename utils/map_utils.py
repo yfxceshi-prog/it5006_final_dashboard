@@ -28,8 +28,16 @@ def build_chicago_layer(df_week: pd.DataFrame, crime: str, model: str) -> pdk.La
         df["_elev"] = (df[prob_col] * 800).clip(0, 800)
     elif model == "Random Forest":
         prob_col = f"rf_prob_{crime}"
-        df["_color"] = df[prob_col].apply(_prob_to_color)
-        df["_elev"] = (df[prob_col] * 800).clip(0, 800)
+        if prob_col not in df.columns:
+            # fallback: use binary pred if prob column missing (old CSV)
+            pred_col = f"rf_pred_{crime}"
+            df["_color"] = df[pred_col].apply(
+                lambda v: [220, 53, 69, 200] if v == 1 else [68, 68, 170, 80]
+            )
+            df["_elev"] = df[pred_col] * 400
+        else:
+            df["_color"] = df[prob_col].apply(_prob_to_color)
+            df["_elev"] = (df[prob_col] * 800).clip(0, 800)
     elif model == "XGBoost":
         pred_col = f"xgb_pred_{crime}"
         df["_color"] = df[pred_col].apply(
